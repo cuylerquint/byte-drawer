@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ByteDrawer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" media="screen">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    </head>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <div class="alert alert-danger" role="alert">
+                          <strong>Holy guacamole!</strong> {{ message }}
+                        </div>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset">
+                <h1>Byte Drawer</h1>
+                <a href="https://github.com/cuylerquint"><i class="fa fa-github"></i></a>&nbsp&nbsp
+                <a href="https://www.linkedin.com/in/cuylerquint/"><i class="fa fa-linkedin"></i></a>&nbsp&nbsp
+                <a href="https://stackoverflow.com/users/8589320/cuyler-quint"><i class="fa fa-stack-overflow"></i></a>
+                <br><br><br>
+                {% if not show_grid %}
+                     <div class="row">
+                        <div  class="col-sm-9 col-sm-offset">
+                            <p>Enter a byte stream to draw or pick an example! </p>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-2 col-xs-12">
+                         <form action="{{ url_for('index') }}" method="post">
+                             <textarea name="bytes" rows="2" cols="150"></textarea>
+                             <div class="container">
+                                 <div class="row">
+                                     <div class="col-xs-1 offset-xs-1">
+                                         <input type="submit" value="Draw" class="btn btn-info">
+                                     </div>
+                                     <div class="col-xs-1 offset-xs-1">
+                                         <button name="example_bytes" type="submit" class="btn btn-success" value="F0A04000417F4000417FC040004000804001C05F205F20804000">Green</button>
+                                     </div>
+                                     <div class="col-xs-1 offset-xs-1">
+                                         <button name="example_bytes" type="submit" class="btn btn-primary" value="F0A040004000417F417FC04000400090400047684F5057384000804001C05F204000400001400140400040007E405B2C4000804000">Blue</button>
+                                     </div>
+                                     <div class="col-xs-1 offset-xs-1">
+                                        <button name="example_bytes" type="submit" class="btn btn-danger" value="F0A0417F40004000417FC067086708804001C0670840004000187818784000804000">Red</button>
+                                     </div>
+                                     <div class="col-xs-1 offset-xs-1">
+                                        <button name="example_bytes" type="submit" class="btn btn-warning" value="F0A0417F41004000417FC067086708804001C067082C3C18782C3C804000">Orange</button>
+                                     </div>
+                                  </div>
+                             </div>
+                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if show_grid %}
+            <div class="row">
+                <br>
+                <div class="col-md-4">
+                     <div>
+                         <p>Processed Byte Stream: {{ bytes }}</p>
+                     </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div id="graphDiv"></div>
+                </div>
+                <div  class="col-sm-5">
+                    {% for i in range(4) %}
+                        <br>
+                    {% endfor %}
+                    <h5>Drawer Commands</h5>
+                    {% for command in commands_ops %}
+                        <p>{{ command }}</p>
+                    {% endfor %}
+                </div>
+          </div>
+        {% endif %}
+    </div>
+
+    {% if show_grid %}
+        <script>
+            var pen_up_points = {{ pen_up_points|safe }};
+            var pen_down_points = {{ pen_down_points|safe }};
+            var lines = {{ lines|safe }};
+            var canvas_range = {{ canvas_range|safe }};
+            var data = [];
+            var annotations = [];
+
+            for(let i = 0; i < lines.length; i++){
+                console.log(lines[i]);
+                var new_trace = {
+                    x: [lines[i]["start_point"]["x"], lines[i]["finish_point"]["x"]],
+                    y: [lines[i]["start_point"]["y"], lines[i]["finish_point"]["y"]],
+                    mode: 'lines',
+                    name: 'Lines',
+                    line: {
+                        color: lines[i]["color"],
+                        width: 3
+                    }
+                };
+                data.push(new_trace);
+            }
+
+            for(let i = 0; i < pen_up_points.length; i++){
+                var new_annotation = {
+                      x: pen_up_points[i]["x"],
+                      y: pen_up_points[i]["y"],
+                      xref: 'x',
+                      yref: 'y',
+                      text: 'Pen Up',
+                      showarrow: true,
+                      arrowhead: 1,
+                      ax: 0,
+                      ay: 20
+                    }
+                annotations.push(new_annotation);
+            }
+
+            for(let i = 0; i < pen_down_points.length; i++){
+                var new_annotation = {
+                      x: pen_down_points[i]["x"],
+                      y: pen_down_points[i]["y"],
+                      xref: 'x',
+                      yref: 'y',
+                      text: 'Pen Down',
+                      showarrow: true,
+                      arrowhead: 1,
+                      ax: 0,
+                      ay: -20
+                    }
+                annotations.push(new_annotation);
+            }
+
+            var layout = {
+                title: '',
+                xaxis: {range: [canvas_range["min_x"], canvas_range["max_x"]]},
+                yaxis: {range: [canvas_range["min_y"], canvas_range["max_y"]]},
+                showlegend: false,
+                annotations: annotations
+            };
+            Plotly.newPlot('graphDiv', data, layout, {displayModeBar: false, displaylogo: false});
+        </script>
+    {% endif %}
+  </body>
+</html>
