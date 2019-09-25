@@ -1,5 +1,5 @@
-Byte Drawer is a Application that processes a byte stream and translate's
-the op codes into a set of commands to be excuted on a canvas
+Byte Drawer is a Application that processes a byte stream and translate's the op codes into a set of commands to be excuted on a canvas.  Please review the byte-drawer-challege.pdf document
+to understand context about this application in more depth.
 
 There are two simple interfaces provided.
 
@@ -8,7 +8,7 @@ There are two simple interfaces provided.
 ```
 https://byte-drawer.herokuapp.com
 ```
-*note this is a hobby server so it may have to wake up on a request causing a response to take up to ~30 seconds
+*Note this is a hobby/free server so it may have to wake up on a request causing a response to take up to ~20 seconds sometimes
 
 
 2) Execute the following command from the root of the bundle:
