@@ -42,7 +42,7 @@ class Drawer(Parser):
         else:
             with open(draw_file, "r") as file:
                 # here would be another place to run validation on the input_file e.g. /n's
-                self.input_steam = file.readline()
+                self.input_steam = file.readline(5_000_000)
 
     def validate_parameters(self):
         if self.input_steam is None:
